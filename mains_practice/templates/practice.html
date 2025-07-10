@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="mb-3">Practice Question</h2>
+
+<p><strong>Question {{ question.number }}:</strong> {{ question.text }}</p>
+<p><strong>Marks:</strong> {{ question.marks }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label class="form-label">Your Answer</label>
+        <textarea name="answer" class="form-control" rows="6"></textarea>
+    </div>
+    <button type="submit" class="btn btn-success">Save Answer</button>
+</form>
+
+{% endblock %}

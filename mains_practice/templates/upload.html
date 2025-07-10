@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="mb-4">Upload UPSC Mains Question Paper</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        {{ form.name }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        {{ form.email }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Upload File</label>
+        {{ form.uploaded_file }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock %}
