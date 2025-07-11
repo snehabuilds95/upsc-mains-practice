@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>📝 Preview Extracted Questions</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="confirm" value="1">
+    <ul class="list-group mt-4">
+        {% for q in questions %}
+            <li class="list-group-item">
+                <strong>Q{{ q.number }} ({{ q.marks }} marks)</strong><br>
+                {{ q.text }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <button type="submit" class="btn btn-success mt-4">✅ Confirm & Start Practice</button>
+    <a href="{% url 'upload' %}" class="btn btn-secondary mt-4 ms-2">🔙 Go Back</a>
+</form>
+{% endblock %}
+
+
