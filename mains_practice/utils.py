@@ -1,39 +1,51 @@
 import re
-from PyPDF2 import PdfReader
+from pdf2image import convert_from_path
+import pytesseract
 
-def remove_hindi(text):
-    return ''.join(char for char in text if not '\u0900' <= char <= '\u097F')
+def extract_text_from_pdf(file_path):
+    """
+    Converts scanned PDF to text using OCR (Tesseract).
+    """
+    pages = convert_from_path(file_path, dpi=300)
+    text = ""
+    for page in pages:
+        text += pytesseract.image_to_string(page, lang='eng+hin') + "\n"
+    return text
 
-def extract_questions_from_file(file):
-    reader = PdfReader(file)
-    full_text = " ".join([page.extract_text() or '' for page in reader.pages])
-
-    lines = full_text.split('\n')
-    english_lines = [line.strip() for line in lines if not any('\u0900' <= ch <= '\u097F' for ch in line)]
-    text = " ".join(english_lines)
-
-    question_blocks = re.findall(r'\d+\.\s.*?(?=\d+\.\s|$)', text, re.DOTALL)
+def extract_questions_from_text(text):
+    text = text.replace('\n', ' ')
+    blocks = re.findall(r'(\d+)\.\s+(.*?)(?=(\d+\.\s)|$)', text, re.DOTALL)
 
     extracted = []
-    for i, block in enumerate(question_blocks, start=1):
+
+    for number, block, _ in blocks:
+        # Skip junk before danda
+        if '।' in block:
+            block = block.split('।', 1)[-1]
+
+        # Remove Hindi and junk
+        block = ''.join(c for c in block if not '\u0900' <= c <= '\u097F')
+        block = re.sub(r'[^\w\s.,;:\-\'\"()/?]', '', block)
+        block = re.sub(r'\s+', ' ', block).strip()
+
+        # Extract marks
         marks = 0
-        marks_match = re.search(r'(\d{1,2})\s*(½|\.5)?\s*$', block)
+        marks_match = re.search(r'(\d{1,2})(½|\.5|/2|‘/2|’/2)?\s*$', block)
         if marks_match:
             whole = int(marks_match.group(1))
             frac = marks_match.group(2)
-            marks = whole + 0.5 if frac in ['½', '.5'] else whole
+            marks = whole + 0.5 if frac else whole
+            block = re.sub(r'(\d{1,2})(½|\.5|/2|‘/2|’/2)?\s*$', '', block).strip()
 
-        block_without_marks = re.sub(r'(\d{1,2})\s*(½|\.5)?\s*$', '', block).strip()
-        cleaned_text = remove_hindi(block_without_marks)
-        cleaned_text = re.sub(r'^\d+\.\s*', '', cleaned_text).strip()
-
-        if cleaned_text:
+        # Filter valid questions
+        if len(block.split()) >= 8:
             extracted.append({
-                'number': i,
-                'text': cleaned_text,
+                'number': int(number),
+                'text': block,
                 'marks': marks
             })
 
+    # Optional debug
     print(f"\n✅ Extracted {len(extracted)} questions:")
     for q in extracted:
         print(f"Q{q['number']} → {q['marks']} marks\n{q['text']}\n")
