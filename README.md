@@ -6,7 +6,7 @@ A Django web app to upload UPSC PDFs, extract questions using OCR and regex, and
 - Upload bilingual UPSC question paper
 - OCR + PDF parsing
 - Answer one question at a time with a timer
-- Save and review answers
+
 
 ## Tech Stack
 - Django
